@@ -1,0 +1,93 @@
+# Docker Compose Commands: Scale and Top
+
+## Overview
+This section covers the usage of the `scale` and `top` commands in Docker Compose to manage container instances and monitor running processes within those containers.
+
+## Commands and Usage
+
+### 1. Scale
+- **Command**: `docker-compose scale <service>=<number>`
+- **Description**: Scales the number of container instances for the specified services. **Note**: The `scale` command is deprecated. It is recommended to use the `up` command with the `--scale` flag instead.
+
+- **Usage Example**:
+    1. Define your `docker-compose.yaml` file:
+        ```yaml
+        version: '3'
+        services:
+          webapp1:
+            image: nginx
+          webapp2:
+            image: nginx
+        ```
+
+    2. Check the current state of the containers:
+        ```bash
+        docker-compose ps
+        ```
+        - **Output**:
+        ```
+                  Name                        Command               State          Ports
+        ----------------------------------------------------------------------------------------
+        docker-compose_webapp1_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8000->80/tcp
+        docker-compose_webapp2_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8002->80/tcp
+        ```
+
+    3. Scale the services:
+        ```bash
+        docker-compose scale webapp1=4 webapp2=2
+        ```
+        - **Output**:
+        ```
+        WARNING: The scale command is deprecated. Use the up command with the --scale flag instead.
+        Creating docker-compose_webapp1_2 ... done
+        Creating docker-compose_webapp1_3 ... done
+        Creating docker-compose_webapp1_4 ... done
+        Creating docker-compose_webapp2_2 ... done
+        ```
+
+    4. Verify the new container instances:
+        ```bash
+        docker-compose ps
+        ```
+        - **Output**:
+        ```
+                  Name                        Command               State          Ports
+        ----------------------------------------------------------------------------------------
+        docker-compose_webapp1_1   /docker-entrypoint.sh ngin ...   Up      80/tcp
+        docker-compose_webapp1_2   /docker-entrypoint.sh ngin ...   Up      80/tcp
+        docker-compose_webapp1_3   /docker-entrypoint.sh ngin ...   Up      80/tcp
+        docker-compose_webapp1_4   /docker-entrypoint.sh ngin ...   Up      80/tcp
+        docker-compose_webapp2_1   /docker-entrypoint.sh ngin ...   Up      80/tcp
+        docker-compose_webapp2_2   /docker-entrypoint.sh ngin ...   Up      80/tcp
+        ```
+
+    - **Result**: A total of 6 containers are now running. This configuration allows users to set up a load balancer to distribute traffic among the containers.
+
+### 2. Top
+- **Command**: `docker-compose top`
+- **Description**: Displays the list of running containers along with their process IDs (PIDs) and details of the processes running inside each container.
+
+- **Usage Example**:
+    ```bash
+    docker-compose top
+    ```
+    - **Output**:
+    ```
+    docker-compose_webapp1_1
+      UID       PID    PPID    C   STIME   TTY     TIME                        CMD
+    --------------------------------------------------------------------------------------------------
+    root       27249   27195   0   06:58   ?     00:00:00   nginx: master process nginx -g daemon off;
+    systemd+   27421   27249   0   06:58   ?     00:00:00   nginx: worker process
+    systemd+   27422   27249   0   06:58   ?     00:00:00   nginx: worker process
+
+    docker-compose_webapp1_2
+      UID       PID    PPID    C   STIME   TTY     TIME                        CMD
+    --------------------------------------------------------------------------------------------------
+    root       27741   27664   0   07:12   ?     00:00:00   nginx: master process nginx -g daemon off;
+    systemd+   27869   27741   0   07:12   ?     00:00:00   nginx: worker process
+    systemd+   27870   27741   0   07:12   ?     00:00:00   nginx: worker process
+    ```
+
+---
+
+This structured format organizes your notes clearly and succinctly, making it easy to reference the `scale` and `top` commands in Docker Compose.

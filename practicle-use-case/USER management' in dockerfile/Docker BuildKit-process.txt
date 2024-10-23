@@ -1,0 +1,20 @@
+Yes, you are correct! Let's break down your statement for clarity:
+
+1. **Using Docker BuildKit**:
+   - The command `DOCKER_BUILDKIT=1 docker build --secret id=mysecret,src=mysecret.txt -t myimage .` 
+   => enables BuildKit and specifies that a secret should be passed to the build process.
+   => `--secret id=mysecret,src=mysecret.txt` indicates that the secret with the identifier `mysecret` should be sourced from the file `mysecret.txt` on your host system.
+
+2. **Mounting the Secret in the Dockerfile**:
+   - The `RUN --mount=type=secret,id=mysecret` command in the Dockerfile 
+   => Allows you to access the secret during the build process.
+   => The `id=mysecret` part specifies which secret to mount, matching the identifier you provided in the `docker build` command.
+   => 
+3. **Accessing the Secret**:
+   - Inside the build process, the secret is made available at the path `/run/secrets/mysecret`.
+   - The command `PASS=$(cat /run/secrets/mysecret)` reads the contents of the secret (the password or sensitive information) and assigns it to the environment variable `PASS`.
+
+### Summary:
+- **Correct Understanding**: You correctly understand that Docker BuildKit facilitates the passing of secrets to the build process. The secret is identified by its ID (`mysecret`), and the `RUN --mount` command allows you to access it during the build, enabling you to use sensitive information securely without exposing it in the final Docker image.
+
+This approach is useful for maintaining security while still being able to utilize sensitive data, such as passwords or API keys, during the image building process.

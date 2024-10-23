@@ -1,0 +1,25 @@
+# Use the official Python slim image as base
+FROM python:3.9-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Update package lists, install necessary build tools, and clean up afterwards
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends gcc default-libmysqlclient-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/* # is used to clean up the apt cache of pakage and metadata
+
+# Copy the requirements.txt file
+COPY requirements.txt .
+
+# Install mysqlclient separately
+RUN pip install mysqlclient
+
+# Install the rest of the app dependencies
+RUN pip install --no-cache-dir -r requirements.txt  #Avoid caching downloaded packages, further reducing image size.
+
+# Copy the application code
+COPY . .
+
+# Specify the default command to run your app
+CMD ["python", "app.py"]

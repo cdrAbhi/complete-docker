@@ -1,0 +1,78 @@
+                    ---Setting Up Docker registry with both TLS and authentication.--
+                    ==================================================================
+
+## Setting Up Docker Registry with Basic Authentication 
+
+### Use Case
+- **Purpose**: Protect your Docker Registry from unauthorized access by requiring authentication for image pushes and pulls.
+- **Benefits**: Adds a layer of security to control access to private images in environments where role-based access isn’t needed.
+
+### Key Steps
+
+#### 1. Install `htpasswd`
+To enable basic authentication, you'll use the `htpasswd` utility from the `apache2-utils` package.
+   ```bash
+   sudo apt-get install apache2-utils
+   ```
+
+#### 2. Create an Authentication File
+Create a file that stores the username and password for accessing the Docker registry.
+1. **Create a Directory for Auth Files**:
+   ```bash
+   mkdir ~/auth
+   ```
+
+2. **Generate the Auth File**:
+   ```bash
+   htpasswd -bnB gaurav password > ~/auth/htpasswd
+   ```
+   - **Flags**: `-b` (batch mode), `-n` (output result to stdout), `-B` (bcrypt encryption).
+   - This command saves the username `gaurav` and password `password` in an encrypted form in `~/auth/htpasswd`.
+
+#### 3. Run Docker Registry with Authentication Enabled
+Start the Docker registry container, specifying the auth file and certificates for secure access.
+   ```bash
+   docker container run -d -p 5000:5000 --name registry_basic \
+     -v "$(pwd)"/auth:/auth \
+     -v "$(pwd)"/certs:/certs \
+     -e REGISTRY_AUTH=htpasswd \
+     -e REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm" \
+     -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+     -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+     -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+     registry
+   ```
+   - **Explanation**:
+     - **-v**: Maps local directories to the container for the auth file and certificates.
+     - **-e**: Sets environment variables for authentication and TLS configuration.
+
+#### 4. Authenticate with the Registry
+To push an image, log in to the registry with the username and password specified in the `htpasswd` file.
+   ```bash
+   docker login repo.docker.local:5000
+   ```
+   - After logging in, your Docker client stores credentials locally.
+
+5. **Push an Image**:
+   ```bash
+   docker image tag redis repo.docker.local:5000/redis
+   docker image push repo.docker.local:5000/redis
+   ```
+   - **Outcome**: The push will succeed only after logging in with valid credentials.
+
+6. **Logout**:
+   ```bash
+   docker logout repo.docker.local:5000
+   ```
+   - Logs out and removes locally stored credentials for this registry.
+
+### Common Interview Topics
+- **Basic Authentication**: How it works and its limitations (i.e., no role-based access).
+- **Securing Docker Registries**: Benefits of securing the registry with both TLS and authentication.
+- **Command Line Proficiency**: Commands for setting up authentication and TLS in Docker.
+
+### Additional Considerations
+- **Production Use**: For production environments, consider using trusted certificates (rather than self-signed) and a secure credentials manager.
+- **Credential Storage**: Docker stores credentials unencrypted by default. Configuring a credentials helper can mitigate security concerns.
+
+This setup provides a quick and effective way to secure a Docker registry using basic authentication, suitable for smaller environments or development setups where more advanced access control isn’t required.

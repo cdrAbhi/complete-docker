@@ -1,0 +1,79 @@
+This Dockerfile is a **multi-stage Docker build** designed to optimize the final image by splitting the build and runtime stages. Let’s go step-by-step:
+
+---
+
+### **Stage 1: Build Stage**
+
+#### 1. **FROM python:3.9 AS builder**
+
+- This line sets the base image to be Python 3.9 from DockerHub. 
+- The `AS builder` part is used to label this stage of the Docker build process as `builder`, which will be referenced later in the final stage.
+- This stage is primarily focused on installing dependencies and building resources.
+
+#### 2. **WORKDIR /app**
+
+- This sets the working directory inside the container to `/app`. 
+- Any subsequent commands that work with files or directories will use this as the base directory.
+
+#### 3. **COPY requirements.txt .**
+
+- This copies the `requirements.txt` file (which lists all the Python dependencies) from the host system to the `/app` directory inside the container.
+- The `.` represents the current directory (inside the container, `/app`).
+
+#### 4. **RUN python -m venv /venv \ && . /venv/bin/activate \ && pip install --no-cache-dir -r requirements.txt**
+
+- **python -m venv /venv**: This creates a Python virtual environment in the `/venv` directory inside the container.
+- **. /venv/bin/activate**: This activates the virtual environment so that dependencies are installed in this isolated environment instead of globally.
+- **pip install --no-cache-dir -r requirements.txt**: This installs all the dependencies listed in `requirements.txt` into the virtual environment (`/venv`).
+  - The `--no-cache-dir` flag tells `pip` not to store any cache, reducing image size.
+
+---
+
+### **Stage 2: Final Stage**
+
+#### 5. **FROM python:3.9-slim**
+
+- This starts a new build stage and sets the base image to `python:3.9-slim`, which is a smaller, more minimal version of the Python image. It excludes unnecessary libraries and components that were only needed during the build stage, resulting in a smaller final image.
+  
+#### 6. **WORKDIR /app**
+
+- Again, the working directory inside this stage is set to `/app`, just like in the previous stage.
+  
+#### 7. **COPY --from=builder /venv /venv**
+
+- This copies the virtual environment (`/venv`) that was created in the **builder stage** into the final image.
+- `--from=builder` references the first stage (labeled as `builder`) and copies the `/venv` folder from it to the final image's `/venv` directory.
+  
+#### 8. **COPY . /app**
+
+- This copies all the application files from the host machine into the `/app` directory inside the container. This includes your Django project files (like `manage.py`, app folders, etc.).
+  
+#### 9. **ENV PATH="/venv/bin:$PATH"**
+
+- This sets an environment variable that appends the virtual environment's `bin` directory to the system’s `PATH`.
+- By doing this, the container will prioritize the virtual environment's Python interpreter and packages whenever a Python command is executed (without needing to manually activate the virtual environment each time).
+  
+#### 10. **EXPOSE 8000**
+
+- This informs Docker that the container will listen on port `8000`. It's primarily used for documentation purposes to signal that the container will serve a web application on this port, and it's the port where the Django development server will run.
+
+#### 11. **CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]**
+
+- This is the default command that gets executed when the container starts.
+- **python manage.py runserver 0.0.0.0:8000**: Runs the Django application using `manage.py`. The server will listen on all network interfaces (`0.0.0.0`) on port `8000`. This allows external devices to access the Django application via the server’s IP address.
+
+---
+
+### **Overall Workflow Explanation:**
+
+1. **Stage 1 (builder stage)**: The purpose of this stage is to build the dependencies inside a Python virtual environment. These dependencies are then packaged into a smaller runtime image for execution. This stage is used temporarily and discarded after creating the runtime environment.
+  
+2. **Stage 2 (final stage)**: The final image is built using the `python:3.9-slim` image, and it includes:
+   - The virtual environment from the builder stage.
+   - The application code from the host machine.
+   - It sets the environment to use the virtual environment by default.
+   - Finally, it runs the Django application via `manage.py` on port `8000`.
+
+### **Why use multi-stage builds?**
+- **Reduces Image Size**: By installing dependencies in the `builder` stage and then using a minimal Python image (`python:3.9-slim`), the final image size is much smaller.
+- **Separation of concerns**: The building and running of the application are separated into different stages, which improves maintainability and performance.

@@ -1,0 +1,10 @@
+Overall : 
+=========    
+    what I learn ?
+    1. How to create Multistage dockerfile?
+    2. How to create virtual environment for install depnedency and package isolated form global binary executable file and make it priotirize by modify PATH variable 
+       with `ENV PATH="/venv/bin:$PATH 
+       purpose: prevent manully activate virtual environment.
+  3. How to navigate a URL form hostmachine to direcly open application? 
+      => apt-get install xdg-utility    
+      => xdg-open http://localhost:8000

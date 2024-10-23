@@ -1,0 +1,25 @@
+### Dockerfile: COPY vs. ADD Instructions
+
+#### COPY
+- **Purpose**: Copies files or directories from the host to the container's filesystem files exactly as they are without any decompression..
+- **Syntax**: `COPY <source> <destination>`
+- **Example**:
+  ```dockerfile
+  COPY testproject /tmp/project
+  ```
+  - This command copies the `testproject` directory from the host to `/tmp/project` in the container.
+
+#### ADD
+- **Purpose**: Similar to COPY but with additional capabilities.
+      => If the source is a compressed file (like `.tar.gz`), it will automatically extract it at the destination.
+      => Can also fetch files from URLs, which COPY does not support.
+
+- **Syntax**: `ADD <source> <destination>`
+- **Example**:
+  ```dockerfile
+  ADD testproject.tar.gz /tmp/project
+  ```
+  - This command copies and extracts `testproject.tar.gz` into `/tmp/project`.
+
+#### Best Practice
+- Prefer `COPY` for clarity and specificity, reserving `ADD` for when decompression or URL-fetching is required.

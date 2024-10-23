@@ -1,0 +1,111 @@
+Here’s a structured and organized version of your notes on Docker Compose commands:
+
+---
+
+# Docker Compose Commands
+
+## Overview
+Docker Compose is a tool for defining and running multi-container Docker applications. Below are the basic commands used in Docker Compose along with their descriptions and outputs.
+
+## Basic Command
+To list all available options for the Docker Compose command, use:
+```bash
+docker-compose --help
+```
+
+## Commands and Usage
+
+### 1. Create
+- **Command**: `docker-compose create`
+- **Description**: This command creates containers but does not start them or create networks and volumes.
+- **Note**: This command is deprecated. Use `docker-compose up --no-start` instead.
+- **Output**:
+    ```
+    WARNING: The create command is deprecated. Use the up command with the --no-start flag instead.
+    Creating docker-compose_webapp1_1 ... done
+    Creating docker-compose_webapp2_1 ... done
+    ```
+
+### 2. Up (with --no-start)
+- **Command**: `docker-compose up --no-start`
+- **Description**: Creates containers and the default network without starting the containers.
+- **Output**:
+    ```
+    Creating network "docker-compose_default" with the default driver
+    Creating docker-compose_webapp1_1 ... done
+    Creating docker-compose_webapp2_1 ... done
+    ```
+
+### 3. Start
+- **Command**: `docker-compose start`
+- **Description**: Starts existing containers.
+- **Output**:
+    ```
+    Starting webapp1 ... done
+    Starting webapp2 ... done
+    ```
+
+### 4. Stop
+- **Command**: `docker-compose stop`
+- **Description**: Stops running containers.
+- **Output**:
+    ```
+    Stopping docker-compose_webapp2_1 ... done
+    Stopping docker-compose_webapp1_1 ... done
+    ```
+
+### 5. Remove (rm)
+- **Command**: `docker-compose rm`
+- **Description**: Removes stopped containers but retains networks and volumes.
+- **Output**:
+    ```
+    Going to remove docker-compose_webapp2_1, docker-compose_webapp1_1
+    Are you sure? [yN] yes
+    Removing docker-compose_webapp2_1 ... done
+    Removing docker-compose_webapp1_1 ... done
+    ```
+
+### 6. Down
+- **Command**: `docker-compose down`
+- **Description**: Stops and removes containers along with networks. Optionally, volumes can be removed with the `--volumes` flag.
+- **Output**:
+    ```
+    Stopping docker-compose_webapp1_1 ... done
+    Stopping docker-compose_webapp2_1 ... done
+    Removing docker-compose_webapp1_1 ... done
+    Removing docker-compose_webapp2_1 ... done
+    Removing network docker-compose_default
+    ```
+
+## Example Workflow
+1. **Create and Start**:
+    ```bash
+    docker-compose up --no-start
+    docker-compose start
+    ```
+
+2. **Stop and Remove**:
+    ```bash
+    docker-compose stop
+    docker-compose rm
+    ```
+
+3. **Down**:
+    ```bash
+    docker-compose down
+    ```
+
+## Container and Network Status Commands
+- **List all containers (including stopped)**:
+    ```bash
+    docker container ls -a
+    ```
+
+- **List networks**:
+    ```bash
+    docker network ls
+    ```
+
+---
+
+This format should help you quickly reference the commands and their purposes, making it easier to understand and use Docker Compose effectively!

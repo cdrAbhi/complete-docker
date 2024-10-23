@@ -1,0 +1,47 @@
+# Specify the Python version as a build argument
+ARG PYTHON_VERSION=3.9-slim
+
+# ============ Stage 1: Build Stage ============
+FROM python:${PYTHON_VERSION} AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc default-libmysqlclient-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install dependencies directly
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ============ Stage 2: Final Stage ============
+FROM python:${PYTHON_VERSION}
+
+# Set the working directory
+WORKDIR /app
+
+# Set pip environment variables to optimize installation
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Copy the installed dependencies from the builder stage
+COPY --from=builder /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
+
+# Copy the application code
+COPY . .
+
+# Create a non-root user for better security
+RUN useradd -m myuser && \
+    chown -R myuser:myuser /app
+
+# Switch to the non-root user
+USER myuser
+
+# Optional: Add a health check to ensure the app is running correctly
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl --fail http://localhost:5000/health || exit 1
+
+# Specify the command to run your app explicitly
+CMD ["python", "app.py"]

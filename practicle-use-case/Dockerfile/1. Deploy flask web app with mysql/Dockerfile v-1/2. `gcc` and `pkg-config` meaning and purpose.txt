@@ -1,0 +1,21 @@
+### When to install `gcc` and `pkg-config` in a Dockerfile for a Python application:
+
+1. **`gcc` (GNU Compiler Collection):**
+   - **When Required**: You need to install `gcc` when your Python application relies on external libraries or packages that include **C extensions**. Many Python packages, such as `numpy`, `pandas`, or `mysqlclient`, contain parts written in C for performance reasons. If you are installing these libraries from source, they require a C compiler like `gcc` to build and compile the extensions.
+   - **Use Case**:
+     - Installing Python packages that require **compiling C code**.
+     - When dealing with performance-critical libraries that require compilation for native execution on your platform.
+     - Example: Installing `mysqlclient` requires `gcc` because it includes C extensions to interface with the MySQL database.
+
+2. **`pkg-config`:**
+   - **When Required**: `pkg-config` is a tool that helps **manage and configure library paths and dependencies** during the build process. It’s especially useful when your Python application relies on libraries that interact with system-level dependencies (such as database libraries, networking, or cryptography tools). 
+   - **Use Case**:
+     - When you are linking your Python application with **system libraries** (e.g., OpenSSL, MySQL, GTK).
+     - It's often used by packages that interface with low-level system dependencies or those that need to resolve paths and versions of installed libraries during the build process.
+     - Example: Libraries like `mysqlclient` or `psycopg2` may need `pkg-config` to resolve paths to MySQL or PostgreSQL development libraries.
+
+### Summary:
+- **Install `gcc`**: If your Python application or its dependencies require C extensions.
+- **Install `pkg-config`**: If your application needs to manage system libraries or link with low-level dependencies.
+
+If your application does not need to compile any C extensions or link with external system libraries, you can skip these installations to keep your Docker image smaller and simpler.

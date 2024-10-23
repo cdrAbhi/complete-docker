@@ -1,0 +1,28 @@
+# Stage 1: Build
+FROM maven:3.8.6-openjdk-11 AS build
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the Maven project files
+COPY pom.xml .
+COPY src ./src
+
+# Build the application
+# Running mvn clean package: When the command RUN mvn clean package -DskipTests is executed, Maven reads the pom.xml, resolves all dependencies (including transitive dependencies), downloads them, compiles the code, runs tests (unless skipped), and packages the application into a JAR file located in the target directory.
+RUN mvn clean package -DskipTests
+
+# Stage 2: Production
+FROM openjdk:11-jre-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the built JAR file from the build stage
+COPY --from=build /app/target/*.jar app.jar  
+
+# Expose the application port
+EXPOSE 8080
+
+# Command to run the application
+CMD ["java", "-jar", "app.jar"]

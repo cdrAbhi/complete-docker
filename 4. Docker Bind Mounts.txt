@@ -1,0 +1,65 @@
+
+### Docker Bind Mounts: Sharing Host Files with Containers
+
+#### Overview
+- **Bind mounts** allow you to mount a file or directory from the host into the container, mapped by an absolute path on the host.
+- **Purpose**: Great for development where you want changes on the host to reflect immediately in the container.
+
+#### Using Bind Mounts
+1. **Create a Directory on Host**:
+   - Create a directory and an `index.html` file:
+     ```bash
+     mkdir bind
+     cd bind
+     vi index.html
+     ```
+   - File content example:
+     ```html
+     <html>
+       <head>
+         <title>test</title>
+       </head>
+       <body>
+         <h1 align="center">Docker BindMount Point Test</h1>
+       </body>
+     </html>
+     ```
+
+2. **Bind Mounting the Directory into a Container**:
+   - Run a container and mount the `bind` directory to `/tmp/test` in the container:
+     ```bash
+     docker container run -it -v /home/gaurav/bind:/tmp/test ubuntu
+     ```
+   - Navigate inside the container to verify the bind mount:
+     ```bash
+     cd /tmp/test
+     ls
+     cat index.html
+     ```
+
+3. **Two-Way Data Sharing**:
+   - Changes made in the container reflect on the host, and vice versa.
+   - Example: Editing `index.html` in the container will reflect on the host.
+
+4. **Full Path vs. Relative Path**:
+   - Always specify the full path when bind mounting.
+   - Example with relative path (incorrect) and full path:
+     ```bash
+     docker container run -itd -v bind:/tmp/test ubuntu  # Incorrect, creates a volume
+     docker container run -itd -v /home/gaurav/bind:/tmp/test ubuntu  # Correct
+     ```
+
+5. **Using the Current Directory with Bind Mount**:
+   - Use `$(pwd)` to bind mount the current directory:
+     ```bash
+     docker container run -it -v $(pwd):/tmp/test ubuntu
+     ```
+   - Alternatively, use `--mount` for more control:
+     ```bash
+     docker container run -it --mount type=bind,source=$(pwd),target=/tmp/test ubuntu
+     ```
+
+#### Key Points
+- **Bind Mounts**: Ideal for sharing host directories with containers during development.
+- **Full Path Requirement**: Bind mounts require the absolute path; otherwise, Docker may interpret it as a new volume.
+- **Real-time Synchronization**: Changes in the host directory reflect immediately in the container, making bind mounts highly suitable for live development environments.

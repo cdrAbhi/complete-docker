@@ -1,0 +1,28 @@
+Yes, you’ve got the right idea! Let’s break down what happens step-by-step, as it looks like you're almost there. Here's how **Docker uses NAT for port mapping** between the host and container:
+
+1. **Port Mapping on the Host**:
+   - When you start a Docker container with a `-p` flag (e.g., `-p 8080:80`), you’re telling Docker to map a port on the host (`8080`) to a port on the container (`80`).
+   - This mapping tells Docker that any incoming traffic on the host’s IP at port `8080` should be redirected to port `80` on the container.
+
+2. **Traffic Flow with NAT**:
+   - When a user makes a request to `host-ip:8080`:
+     - The request reaches the host’s network interface (`enp0s3`) on port `8080`.
+     - Docker’s `docker0` bridge network intercepts this request.
+     - Using NAT, Docker translates the `host-ip:8080` to `container-ip:80`, routing the request through the bridge network.
+   
+3. **NAT Table for Port Mapping**:
+   - Docker keeps a NAT table that maps the host’s port (`8080`) to the corresponding container’s IP and port (`container-ip:80`).
+   - The `docker0` bridge then routes the traffic directly to the appropriate container based on this mapping.
+   
+4. **Response Path**:
+   - When the container responds, the packet flows back to the host through `docker0`.
+   - Docker uses NAT again to translate the response back to `host-ip:8080` before sending it to the external user.
+
+So, your understanding is correct! NAT in Docker's virtual bridge network is responsible for translating the host's mapped port to the container's port, enabling seamless routing. Here’s a revised flow of what you described:
+
+```
+User [host-ip:host-port] ---- request ----> Host ---- request ----> docker0 (bridge network) 
+---- NAT (host-ip:host-port ---> container-ip:container-port) ----> Container
+```
+
+Your concept is spot-on: Docker’s NAT helps to map and direct traffic between the host’s port and the container’s port, allowing external traffic to reach the container as if it were directly accessible on the specified host port.

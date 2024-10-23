@@ -1,0 +1,51 @@
+# syntax=docker/dockerfile:1.2
+
+# Use a more updated Ubuntu version as the base image
+FROM ubuntu:20.04
+
+# Set the maintainer label
+LABEL maintainer="learning-ocean"
+LABEL email="[email protected]"
+
+# Define environment variables for username (password will come via secret)
+ENV NAME=gaurav
+
+# Set working directory in the container
+WORKDIR /tmp
+
+# Install necessary packages, clean up APT cache to reduce image size
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        openssh-server \
+        python3 \
+        gcc \
+        openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+#=======1.Create user=========
+# Copy the secret password securely using Docker BuildKit's secret feature
+# This requires the build command to provide the secret
+#unsecure becaue user directlly add to sudo group
+RUN --mount=type=secret,id=mysecret \
+    PASS=$(cat /run/secrets/mysecret) && \
+    useradd -d /home/$NAME -g root -G sudo -m -p $(echo "$PASS" | openssl passwd -1 -stdin) $NAME
+
+#=======2.Create user=========
+# Create a non-root user with a home directory securelly 
+#RUN --mount=type=secret,id=mysecret \
+#    PASS=$(cat /run/secrets/mysecret) && \
+#    useradd -m -d /home/$NAME -g root -p "$(echo "$PASS" | openssl passwd -1 -stdin)" "$NAME" && \
+#    chown -R "$NAME:$NAME" /app  # Adjust ownership of the /app directory
+
+
+# Run `whoami` as root and save output
+RUN whoami > /tmp/1stwhoami.txt
+
+# Switch to the new user
+USER $NAME
+
+# Run `whoami` as the new user and save output
+RUN whoami > /tmp/2ndwhoami.txt
+
+# Switch back to root for future commands, if necessary
+USER root

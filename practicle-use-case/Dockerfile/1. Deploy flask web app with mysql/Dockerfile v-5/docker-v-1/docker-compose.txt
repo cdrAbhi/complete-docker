@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+  # ==== MySQL Service ====
+  mysql:
+    container_name: mysql
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: devops
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    volumes:
+      - ./message.sql:/docker-entrypoint-initdb.d/message.sql  # Mount SQL script for automatic table creation
+      - mysql-data:/var/lib/mysql  # Mount the volume for MySQL data storage
+    networks:
+      - twotier
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+
+  # === Flask Application Service ===
+  flask-app:
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: 3.9-slim
+    ports:
+      - "5001:5000"
+    env_file: ".env"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - twotier
+
+volumes:
+  mysql-data:
+    driver: local
+  
+networks:
+  twotier:
+    driver: bridge
+

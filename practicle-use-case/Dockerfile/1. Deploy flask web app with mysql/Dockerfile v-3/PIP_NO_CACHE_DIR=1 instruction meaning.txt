@@ -1,0 +1,19 @@
+The `ENV` instruction in a Dockerfile is used to set environment variables inside the container. The variables you mentioned, `PIP_NO_CACHE_DIR` and `PIP_DISABLE_PIP_VERSION_CHECK`, specifically relate to the behavior of `pip`, the Python package installer.
+
+### Meaning and Purpose
+
+#### 1. **PIP_NO_CACHE_DIR=1**
+   - **Meaning**: This environment variable tells `pip` not to cache the downloaded packages.
+   - **Purpose**: By disabling caching, you reduce the size of the Docker image because it prevents `pip` from storing the package files in a cache directory. This is particularly useful in a Docker environment where you typically want the smallest possible image size. It can also speed up the build process because there is no cache to manage.
+
+#### 2. **PIP_DISABLE_PIP_VERSION_CHECK=1**
+   - **Meaning**: This environment variable disables the check for the latest version of `pip`.
+   - **Purpose**: By disabling this version check, you can speed up the installation process. This is helpful in a Docker build context where you want to minimize the time it takes to build the image. It avoids network calls to check for updates to `pip`, which can slow down the build.
+
+### Example Usage in a Dockerfile
+```dockerfile
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+```
+
+Incorporating these environment variables into your Dockerfile helps streamline the image building process, ensuring that the final image is as small and efficient as possible while avoiding unnecessary delays during the installation of Python packages.

@@ -1,0 +1,40 @@
+# Docker Compose Bind Mounts
+
+## Overview
+Docker bind mounts allow you to link host directories or files to directories or files in a container. This enables real-time synchronization between the host and the container, making it easy to manage files.
+
+## Docker Compose YAML Configuration
+
+### Example Configuration
+```yaml
+version: '3'
+services:
+  webapp1:
+    image: nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./ot/:/usr/share/nginx/html/
+```
+
+### Explanation of Configuration
+- **Version**: Specifies the version of the Docker Compose file format. In this case, version 3 is used.
+  
+- **Services**: Defines the services that make up the application. In this example, there is only one service defined, `webapp1`.
+
+  - **webapp1**:
+    - **Image**: Specifies the Docker image to use. Here, `nginx` is used as the web server.
+    
+    - **Ports**:
+      - `"8000:80"`: This line binds port 8000 on the host to port 80 on the container. This means that requests to `http://localhost:8000` will be routed to the web server running inside the container on port 80.
+
+    - **Volumes**:
+      - `./ot/:/usr/share/nginx/html/`: This line mounts the `./ot/` directory from the host into the `/usr/share/nginx/html/` directory of the container. Any files placed in the `./ot/` directory on the host will be accessible within the container at the specified path, allowing for easy management of static files served by the web server.
+
+## Benefits of Using Bind Mounts
+- **Real-time synchronization**: Changes made to files in the host directory are immediately reflected in the container.
+- **Easy file management**: Simplifies the development workflow by allowing developers to edit files on the host while running the application in a container.
+
+---
+
+This organized format provides a clear overview of Docker Compose bind mounts, making it easy to reference and understand the key concepts.

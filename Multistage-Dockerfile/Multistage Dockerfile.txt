@@ -1,0 +1,44 @@
+# Stage 1: Build Stage
+# Use the official Python image to build dependencies
+FROM python:3.9 AS builder
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy only the requirements file to the container
+COPY requirements.txt .
+
+# python -m venv /venv \: Creating Python virtual environment in the /venv directory inside the container.  
+# . /venv/bin/activate: Activate it.
+# Install the dependencies in a virtual environment and The --no-cache-dir flag tells pip not to store any cache.
+# purpose: To isolated install the python dependencies and library for a particular application.
+RUN python -m venv /venv \
+    && . /venv/bin/activate \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Final Stage
+# Use a minimal Python image for the final container
+FROM python:3.9-slim
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the virtual environment from the build stage
+COPY --from=builder /venv /venv
+
+# Copy the application files from the host to the container
+COPY . /app
+
+# Modify the path variable value to prevent manul Activate the virtual environment for Python commands
+# result: priotirize first use when you run py or python system first check /venv for python exeutable binanary file and then rest of the global binary file
+# befor modify $PATH is:
+# root@cloudserver-d2VC0uAb ~# echo $PATH
+# /usr/local/sbin /usr/local/bin /usr/sbin /usr/bin /sbin /bin /usr/games /usr/local/games /snap/bin
+
+ENV PATH="/venv/bin:$PATH"
+
+# Expose the port the application runs on
+EXPOSE 8000
+
+# Command to run the Django application
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

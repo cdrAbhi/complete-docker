@@ -1,0 +1,22 @@
+### 1. What Does "Mount" Mean?
+
+In the context of Docker, **mounting** refers to the process of making a file or directory from the host system (your local machine) available to a container at a specified path. 
+This allows the container to access files or directories without copying them into the container’s filesystem, which can be useful for various scenarios, including:
+
+### Types of Mounts in Docker:
+
+1. **Volumes**:
+2. **Bind Mounts**:
+3. **Secret Mounts**: Specifically for sensitive data, like passwords or API keys, where the secret is made available only during the build process and not stored in the final image.
+
+### 2. Where Is `/run/secrets/mysecret` Available?
+
+- The directory `/run/secrets/mysecret` is **available inside the container** during the build process. 
+
+When you use the `--mount=type=secret,id=mysecret` command, Docker BuildKit mounts the secret from the host into the build environment of the container at the specified path (`/run/secrets/mysecret`). 
+
+### Key Points:
+- The secret is not available in the final image after the build process completes. 
+- It is a temporary mount, so it exists only during the build stage where the `RUN` command is executed.
+- After the build step that accesses the secret, it is removed, ensuring that sensitive data does not persist in the final Docker image.
+

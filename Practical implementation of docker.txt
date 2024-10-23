@@ -1,0 +1,23 @@
+dockerfile 
+======== 
+file =====================================> Image =============================> Container .
+---                                                                                     -------------                                                               --------------  
+- write instruction related to :        - Creating an image by file.           - using image create container and deploy application
+  deploy application like : 
+- install library and dependency  
+- copy code from host to container.
+- Run command in container
+
+how to create different type of docker image ?
+============================================= 
+- python 
+- nodeJs 
+- java
+
+how to prevent some file to use in docker image during run instruction of Dockerfile.  
+======================================================================================= 
+=> vim .dockerignore
+-> Add all file that you want to exclude from Dockerfile during execute dockerfile instruction
+
+
+

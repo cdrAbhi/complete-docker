@@ -1,0 +1,67 @@
+overall
+purpose of docker connect and disconnect is to add more than one
+neowork to a container ,
+AM I correct ?
+
+
+Yes, you are correct! The purpose of the `docker network connect` and `docker network disconnect` commands is to manage the networking of containers by allowing them to connect to multiple networks. Here are concise notes for interview preparation:
+
+### Docker Network Connect and Disconnect
+
+#### Purpose
+- To manage network connections for containers.
+- Allows a single container to connect to multiple networks.
+
+#### Commands
+1. **Connect a Network to a Container**:
+   ```bash
+   docker network connect <network_name> <container_name>
+   ```
+   - Example:
+     ```bash
+     docker network connect test 1a5752e79f47
+     ```
+
+2. **Disconnect a Network from a Container**:
+   ```bash
+   docker network disconnect <network_name> <container_name>
+   ```
+   - Example:
+     ```bash
+     docker network disconnect test 1a5752e79f47
+     ```
+
+#### Key Points
+- **Default Network**: When a container is created, it is connected to the default bridge network.
+- **Network Interface**: Connecting additional networks adds new network interfaces (e.g., `eth1`, `eth2`) to the container.
+- **Network Isolation**: Allows for specific traffic management and isolation among containers.
+- **Limitations**: A container in **none** mode cannot connect to another network.
+
+#### Example Workflow
+1. **Create a Container**:
+   ```bash
+   docker run -it --network bridge ubuntu:14.04 bash
+   ```
+
+2. **Create a New Network**:
+   ```bash
+   docker network create test
+   ```
+
+3. **Connect to New Network**:
+   ```bash
+   docker network connect test <container_id>
+   ```
+
+4. **Verify Connection**:
+   ```bash
+   docker exec -it <container_id> ifconfig
+   ```
+
+5. **Disconnect from Network**:
+   ```bash
+   docker network disconnect test <container_id>
+   ```
+
+#### Conclusion
+- Understanding how to connect and disconnect networks is essential for managing Docker containers effectively, particularly in multi-container applications where networking plays a crucial role.

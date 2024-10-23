@@ -1,0 +1,70 @@
+To securely manage secrets like passwords without exposing them in Docker build logs, you can use **Docker BuildKit** with the `--secret` flag to pass sensitive data securely during the image build. Here's an updated version of your Dockerfile that demonstrates how to use Docker secrets for securely handling sensitive information such as passwords.
+
+### Updated Dockerfile with Secrets
+
+```dockerfile
+# syntax=docker/dockerfile:1.2
+
+# Use a more updated Ubuntu version as the base image
+FROM ubuntu:20.04
+
+# Set the maintainer label
+LABEL maintainer="learning-ocean"
+LABEL email="[email protected]"
+
+# Define environment variables for username (password will come via secret)
+ENV NAME=gaurav
+
+# Set working directory in the container
+WORKDIR /tmp
+
+# Install necessary packages, clean up APT cache to reduce image size
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        openssh-server \
+        python3 \
+        gcc \
+        openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the secret password securely using Docker BuildKit's secret feature
+# This requires the build command to provide the secret
+RUN --mount=type=secret,id=mysecret \
+    PASS=$(cat /run/secrets/mysecret) && \
+    useradd -d /home/$NAME -g root -G sudo -m -p $(echo "$PASS" | openssl passwd -1 -stdin) $NAME
+
+# Run `whoami` as root and save output
+RUN whoami > /tmp/1stwhoami.txt
+
+# Switch to the new user
+USER $NAME
+
+# Run `whoami` as the new user and save output
+RUN whoami > /tmp/2ndwhoami.txt
+
+# Switch back to root for future commands, if necessary
+USER root
+```
+
+### Steps to Build with Secrets:
+1. **Create a Secret File**: You need to store the sensitive password in a file on your machine, for example:
+   ```bash
+   echo "password" > mysecret.txt
+   ```
+
+2. **Build with Docker BuildKit and Secrets**:
+   - When you build the image, use BuildKit and pass the secret like this:
+     ```bash
+     DOCKER_BUILDKIT=1 docker build --secret id=mysecret,src=mysecret.txt -t myimage .
+     ```
+
+### How it Works:
+- **`--mount=type=secret`**: This allows Docker to securely mount the secret at build time without exposing it in the final image or build logs.
+- **`/run/secrets/mysecret`**: Docker mounts the secret to this location within the container during the build process, where it can be accessed temporarily.
+- **Secrets Not Exposed in Logs**: The `PASS=$(cat /run/secrets/mysecret)` reads the secret, but it is not shown in the build logs, avoiding exposure of sensitive data.
+- **Security Best Practice**: Using Docker secrets ensures the password is not included in the Dockerfile or the final image, making the build process more secure.
+
+### Requirements:
+- You need to use **Docker BuildKit**, which is available in Docker version 18.09 and later. Ensure that BuildKit is enabled with `DOCKER_BUILDKIT=1`.
+
+This approach enhances security by preventing sensitive information from leaking into the logs or the image, which is critical in production environments.

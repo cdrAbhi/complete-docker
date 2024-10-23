@@ -1,0 +1,30 @@
+# Use the official Python slim image as the base
+FROM python:3.9-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Update and install dependencies, using 'no-install-recommends' to minimize unnecessary packages
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends gcc default-libmysqlclient-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the requirements.txt file separately for caching purposes
+COPY requirements.txt .
+
+# Install Python packages efficiently
+RUN pip install --no-cache-dir mysqlclient && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code
+COPY . .
+
+# Create a non-root user for better security
+RUN useradd -m myuser && \
+    chown -R myuser:myuser /app
+
+# Switch to the non-root user
+USER myuser
+
+# Specify the default command to run your app
+CMD ["python", "app.py"]

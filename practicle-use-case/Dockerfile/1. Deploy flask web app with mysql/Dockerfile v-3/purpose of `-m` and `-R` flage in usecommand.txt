@@ -1,0 +1,15 @@
+### Explanation of `-m` and `-R` in the Dockerfile:
+
+1. **`-m` in `useradd`:**
+   - This flag ensures that a **home directory** is created for the new user. If the directory does not exist, it will be created at `/home/username`.
+   - In your case, `useradd -m myuser` creates a user `myuser` and automatically creates `/home/myuser` as the home directory.
+
+2. **`-R` in `chown`:**
+   - The `-R` flag stands for **recursive**. It means that the ownership change will apply **recursively to all files and directories** inside the specified directory.
+   - So, `chown -R myuser:myuser /app` changes the ownership of the `/app` directory and all its contents (files, subdirectories) to the user `myuser` and the group `myuser`.
+
+### Summary:
+- **`-m`** creates a home directory for the new user.
+- **`-R`** ensures that ownership changes are applied recursively to all files and subdirectories under `/app`.
+
+This approach ensures that the `myuser` account has ownership and control over the necessary files and directories in `/app`.

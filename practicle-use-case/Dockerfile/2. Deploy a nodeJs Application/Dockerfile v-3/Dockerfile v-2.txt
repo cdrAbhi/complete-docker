@@ -1,0 +1,52 @@
+# Specify the Node.js version as a build argument
+ARG NODE_VERSION
+
+# ============ Stage 1: Build Stage ============
+FROM node:${NODE_VERSION} AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Set npm environment variables to optimize installation
+ENV NPM_CONFIG_LOGLEVEL=warn \
+    NPM_CONFIG_PRODUCTION=true \
+    NPM_CONFIG_CACHE=/tmp/npm-cache
+
+# Install system dependencies
+# gcc, g++, make: Required to compile native add-ons for Node.js
+# default-libmysqlclient-dev: Required to compile MySQL-related native bindings
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc g++ make default-libmysqlclient-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy package.json and package-lock.json (or yarn.lock)
+COPY package*.json ./
+
+# Install Node.js dependencies (including MySQL driver)
+RUN npm install --production --no-cache
+
+# ============ Stage 2: Final Stage ============
+FROM node:${NODE_VERSION}
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the installed dependencies from the builder stage
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy the application code
+COPY . .
+
+# Create a non-root user for better security
+RUN useradd -m myuser && \
+    chown -R myuser:myuser /app
+
+# Switch to the non-root user
+USER myuser
+
+# Optional: Add a health check to ensure the app is running correctly
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl --fail http://localhost:3000/health || exit 1
+
+# Specify the command to run your Node.js app
+CMD ["node", "app.js"]

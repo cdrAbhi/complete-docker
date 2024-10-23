@@ -1,0 +1,135 @@
+Here's a complete Dockerfile that demonstrates how to build a Node.js application that connects to a MySQL database. This Dockerfile uses multi-stage builds to optimize the final image, installing necessary system dependencies (such as MySQL client libraries) during the build stage but leaving them out of the final production image to keep it lean.
+
+### Dockerfile:
+```Dockerfile
+# Specify the Node.js version as a build argument
+ARG NODE_VERSION
+
+# ============ Stage 1: Build Stage ============
+FROM node:${NODE_VERSION} AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Set npm environment variables to optimize installation
+ENV NPM_CONFIG_LOGLEVEL=warn \
+    NPM_CONFIG_PRODUCTION=true \
+    NPM_CONFIG_CACHE=/tmp/npm-cache
+
+# Install system dependencies
+# gcc, g++, make: Required to compile native add-ons for Node.js
+# default-libmysqlclient-dev: Required to compile MySQL-related native bindings
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc g++ make default-libmysqlclient-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy package.json and package-lock.json (or yarn.lock)
+COPY package*.json ./
+
+# Install Node.js dependencies (including MySQL driver)
+RUN npm install --no-cache
+
+# ============ Stage 2: Final Stage ============
+FROM node:${NODE_VERSION}
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the installed dependencies from the builder stage
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy the application code
+COPY . .
+
+# Create a non-root user for better security
+RUN useradd -m myuser && \
+    chown -R myuser:myuser /app
+
+# Switch to the non-root user
+USER myuser
+
+# Optional: Add a health check to ensure the app is running correctly
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl --fail http://localhost:3000/health || exit 1
+
+# Specify the command to run your Node.js app
+CMD ["node", "app.js"]
+```
+
+### Breakdown of the Dockerfile:
+
+1. **Multi-Stage Build:**
+   - **Stage 1 (Builder Stage):**
+     - Installs all the necessary system tools (`gcc`, `g++`, `make`, and `default-libmysqlclient-dev`) to compile native modules, including MySQL drivers.
+     - Copies over `package.json` and `package-lock.json` (or `yarn.lock`) to ensure all required Node.js dependencies (like the MySQL driver) are installed.
+     - After the dependencies are installed, the built `node_modules` directory is passed to the final stage.
+   
+   - **Stage 2 (Final Stage):**
+     - This stage contains only the necessary files for running the app. The final image doesn’t include development tools or unnecessary libraries, which keeps it small and efficient.
+     - The `node_modules` directory from the builder stage is copied into this stage, ensuring that the app has access to all installed dependencies, including the MySQL driver.
+
+2. **System Dependencies:**
+   - **`gcc`, `g++`, `make`:** These are necessary for compiling native Node.js modules.
+   - **`default-libmysqlclient-dev`:** This package provides the MySQL client libraries needed for Node.js MySQL packages (like `mysql` or `mysql2`) to compile native bindings.
+
+3. **Security:**
+   - A non-root user (`myuser`) is created and switched to for running the app. Running as a non-root user increases security by limiting permissions within the container.
+
+4. **Optimizations:**
+   - **Environment Variables (`NPM_CONFIG_LOGLEVEL`, `NPM_CONFIG_PRODUCTION`, `NPM_CONFIG_CACHE`):** These help optimize the `npm install` process by:
+     - Reducing log verbosity.
+     - Installing only production dependencies (avoiding unnecessary `devDependencies`).
+     - Using a temporary cache to avoid bloating the final image with cached files.
+
+5. **Health Check:**
+   - The optional `HEALTHCHECK` directive periodically checks if the application is running and accessible by sending an HTTP request to a health check endpoint (`/health`). If the health check fails, the container will be marked as unhealthy.
+
+### Example MySQL Connection in Node.js
+
+To complete the setup, here's a simple example of how you might connect your Node.js app to a MySQL database using the `mysql2` package:
+
+**`app.js`:**
+```javascript
+const mysql = require('mysql2');
+
+// Create a MySQL connection
+const connection = mysql.createConnection({
+  host: 'mysql_host',       // Replace with your MySQL host
+  user: 'mysql_user',       // Replace with your MySQL user
+  password: 'mysql_password', // Replace with your MySQL password
+  database: 'mysql_database'  // Replace with your MySQL database
+});
+
+// Connect to the MySQL database
+connection.connect((err) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+    return;
+  }
+  console.log('Connected to the MySQL database.');
+});
+
+// Example query
+connection.query('SELECT 1 + 1 AS solution', (err, results) => {
+  if (err) throw err;
+  console.log('The solution is: ', results[0].solution);
+});
+
+// Close the connection
+connection.end();
+```
+
+### Usage:
+1. **Build the Docker Image:**
+   ```bash
+   docker build --build-arg NODE_VERSION=16 -t my-node-app .
+   ```
+
+2. **Run the Docker Container:**
+   Ensure you have a MySQL container running (or another MySQL database accessible), then:
+   ```bash
+   docker run -d -p 3000:3000 --name my-node-app --env MYSQL_HOST=<mysql_host> --env MYSQL_USER=<mysql_user> --env MYSQL_PASSWORD=<mysql_password> --env MYSQL_DATABASE=<mysql_database> my-node-app
+   ```
+
+### Summary:
+This Dockerfile is optimized for a Node.js application that connects to a MySQL database. It includes the necessary build tools and MySQL client libraries in the build stage, but keeps the final production image small by omitting these tools from the final stage. It also ensures that the application runs securely as a non-root user and includes an optional health check for monitoring the application’s status.

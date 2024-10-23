@@ -1,0 +1,13 @@
+primary difference between `RUN` and `CMD` well, but let’s refine it a bit for clarity:
+
+- **RUN**:  
+  - This instruction is used to execute commands *during the build process* of the Docker image. 
+  - Each `RUN` command creates a new layer in the image and is often used to install software packages, configure the environment, or set up dependencies. 
+  - These commands are executed *before the container is created*, meaning they modify the image itself, not the running container.
+  - Example: `RUN apt-get update && apt-get install -y python3`
+
+- **CMD**:  
+  - This instruction specifies the default command that will execute *when a container is created and started* from the image.
+  - It doesn’t execute when the image is built, only when the container is created and started.
+  - `CMD` is typically used to define the main process or script for the container, such as running the application itself.
+  - Example: `CMD ["python3", "app.py"]`

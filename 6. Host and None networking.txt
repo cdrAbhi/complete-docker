@@ -1,0 +1,56 @@
+Here’s a concise and organized set of notes focusing on the **host** and **none** network modes in Docker, suitable for interview preparation:
+
+---
+
+### Docker Network Modes: Host vs. None
+
+#### 1. Host Network Mode
+- **Definition**: Shares the host's network stack; no separate IP for the container access with host-Ip-Address.
+  
+- **Functionality**:
+  - **No Isolation**: Full access to host's network interfaces.If a service inside the container listens on a specific port, that port is directly accessible on the host's IP address without any port mapping required
+  - **Performance**: Better throughput and lower latency due to no NAT/bridge overhead.
+
+- **Use Cases**:
+  - High-performance applications (e.g., real-time data processing).
+  - Debugging network configurations.
+
+- **Example Command**:
+  ```bash
+  docker run --network host nginx
+  ```
+
+#### 2. None Network Mode
+- **Definition**: No network interfaces; complete isolation from host and other containers.
+
+- **Functionality**:
+  - **Isolation**: No communication possible; no network stack.
+  - **Custom Networking**: Can create custom interfaces (e.g., veth pairs) if needed.
+
+- **Use Cases**:
+  - Development/testing scenarios requiring isolation.
+  - Security-sensitive applications.
+
+- **Example Command**:
+  ```bash
+  docker run --network none nginx
+  ```
+
+### Key Differences
+
+| Feature                 | Host Network Mode                      | None Network Mode                    |
+|-------------------------|----------------------------------------|--------------------------------------|
+| **Network Isolation**   | No isolation; shares host's network    | Complete isolation; no network access|
+| **IP Address**          | Uses host's IP address                 | No IP address assigned               |
+| **Performance**         | High performance (direct access)       | Not applicable (no network)          |
+| **Use Cases**           | High-performance apps; debugging       | Security-sensitive apps; isolation   |
+
+---
+
+### Conclusion
+- **Host Mode**: Best for applications needing direct network access and low latency.
+- **None Mode**: Best for applications requiring total isolation from the network.
+
+--- 
+
+This format should help you quickly recall the essential points during an interview!

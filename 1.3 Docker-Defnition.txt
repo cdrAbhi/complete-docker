@@ -1,0 +1,39 @@
+Dockerfile
+===========
+A Dockerfile is a document that contains a series of instructions or scripts used to create a Docker image.
+
+Label 
+=======
+A LABEL instruction in a Dockerfile is used to add metadata to a Docker image, such as information about volumes, networks,
+license, or other organizational details. This metadata helps in categorizing and managing Docker images.
+
+ENV
+===
+The ENV instruction in a Dockerfile is used to set environment variables in an image. These environment variables are 
+persisted and available when the container is run.
+
+RUN 
+===
+The RUN instruction in a Dockerfile is used to execute a command in a new layer on top of the current image. The resulting 
+image layer will be used as the base for the next instruction in the Dockerfile.
+
+WORKDIR
+======
+The WORKDIR instruction in a Dockerfile is used to set the working directory for any subsequent instructions that follow 
+it in the Dockerfile.
+                                        OR
+The WORKDIR instruction in a Dockerfile sets the working directory for any subsequent instructions that follow it. 
+This means that all relative paths in the Dockerfile will be based on this directory, making it easier to manage 
+paths within the container.
+
+ADD,COPY
+========
+
+COPY:
+=====
+    => Best for straightforward copying of local files and directories.
+    => Does not perform any additional operations on the files.
+ADD:
+=====    
+    => More versatile with automatic extraction of compressed files and the ability to handle remote URLs.
+    => Use ADD for tasks requiring these additional capabilities, otherwise prefer COPY for clarity and simplicity.

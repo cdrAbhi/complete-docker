@@ -1,0 +1,70 @@
+Docker BuildKit is an advanced build subsystem for Docker that improves the efficiency and performance of the image-building process. It introduces several features that streamline the workflow and enhance security and usability. Here’s an overview of the process and workflow when using Docker BuildKit, along with its purposes:
+
+### Workflow and Process of Using Docker BuildKit
+
+1. **Enable BuildKit**:
+   - **Temporary Enabling**: You can enable BuildKit for a single build by setting the environment variable:
+     ```bash
+     DOCKER_BUILDKIT=1 docker build -t myimage .
+     ```
+   - **Permanent Enabling**: Alternatively, you can enable BuildKit globally by modifying the Docker daemon configuration (`/etc/docker/daemon.json`) to include:
+     ```json
+     {
+       "features": {
+         "buildkit": true
+       }
+     }
+     ```
+     After saving, restart the Docker service.
+
+2. **Create Dockerfile**:
+   - Write your Dockerfile as usual, taking advantage of new BuildKit features like multi-stage builds, secret management, and cache control. For example:
+     ```dockerfile
+     # syntax=docker/dockerfile:1.2
+     FROM alpine:latest
+     RUN --mount=type=secret,id=mysecret cat /run/secrets/mysecret
+     ```
+   - Use the new syntax to specify the version of the Dockerfile format, which allows BuildKit features.
+
+3. **Build the Image**:
+   - Execute the build command as before, but with BuildKit enabled. Docker will process the Dockerfile using BuildKit’s engine:
+     ```bash
+     docker build --secret id=mysecret,src=mysecret.txt -t myimage .
+     ```
+
+4. **Utilize Advanced Features**:
+   - **Caching**: BuildKit can cache intermediate layers more intelligently, speeding up subsequent builds by reusing unchanged layers.
+   - **Parallel Builds**: BuildKit allows multiple layers to be built in parallel when possible, reducing overall build time.
+   - **Secrets and SSH Forwarding**: Use the `--secret` and `--ssh` flags to securely manage sensitive data and SSH access during the build process without exposing them in the final image.
+
+5. **Check Build Output**:
+   - Monitor the build process, which will show detailed output about each step being executed, including which layers are being built, cached, or reused.
+
+6. **Run the Image**:
+   - After a successful build, you can run the image as usual:
+     ```bash
+     docker run myimage
+     ```
+
+### Purposes of Using Docker BuildKit
+
+1. **Efficiency**:
+   - **Faster Builds**: By caching layers and allowing parallel builds, BuildKit significantly speeds up the image-building process, especially for larger projects with many dependencies.
+
+2. **Improved Security**:
+   - **Secret Management**: BuildKit allows the secure passing of secrets during the build process without including them in the final image, enhancing security.
+   - **Isolation of Build Context**: BuildKit provides better isolation of the build environment, reducing the risk of exposure of sensitive data.
+
+3. **Better Cache Management**:
+   - **Intelligent Caching**: BuildKit can determine if a step has changed and only rebuilds the layers that need updating, which optimizes the build time and storage.
+
+4. **New Features**:
+   - **Multi-Stage Builds**: Although available in older versions, BuildKit enhances the support for multi-stage builds, allowing you to create smaller images by separating the build environment from the final runtime environment.
+   - **Supports Dockerfile Frontend**: BuildKit allows users to leverage different frontends for their Dockerfiles, enhancing flexibility.
+
+5. **Enhanced Output**:
+   - BuildKit provides more informative output during the build process, which can help with debugging and understanding the build flow.
+
+### Conclusion
+
+Using Docker BuildKit enhances the image-building process by providing improved performance, security, and usability features. By adopting BuildKit, developers can create more efficient, secure, and manageable Docker images while leveraging advanced build capabilities.

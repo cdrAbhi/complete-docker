@@ -1,0 +1,144 @@
+# Building a Python-Redis Project with Docker Compose
+
+## Project Overview
+This project demonstrates how to use Docker Compose and a Dockerfile to build a simple Python application that connects to a Redis database. The application serves a web page that tracks how many times it has been accessed.
+
+### Project Structure
+The project consists of the following files:
+- **app.py**: The main Python application.
+- **requirements.txt**: Lists the required Python packages.
+- **Dockerfile**: Defines how to build the Docker image.
+- **docker-compose.yml**: Defines the services and configuration for the Docker containers.
+
+## Dockerfile
+
+### Example Dockerfile
+```dockerfile
+FROM python:3.4
+ADD . /code
+WORKDIR /code
+RUN pip install -r requirements.txt
+CMD ["python", "app.py"]
+```
+
+### Key Instructions
+- **FROM**: Specifies the base image to use. In this case, Python 3.4 is used.
+- **ADD**: Copies files from the host into the container. Here, the current directory is copied to `/code` in the container.
+- **WORKDIR**: Sets the default working directory for subsequent instructions in the Dockerfile.
+- **RUN**: Installs the Python packages specified in `requirements.txt`.
+- **CMD**: Specifies the command to run when the container starts, which in this case is to run the `app.py` script.
+
+### Requirements File
+**requirements.txt**
+```
+flask
+redis
+```
+
+### Application Code
+**app.py**
+```python
+import os
+import time
+import redis
+from flask import Flask
+
+app = Flask(__name__)
+cache = redis.Redis(host='redis', port=6379)
+
+def get_hit_count():
+    retries = 5
+    while True:
+        try:
+            return cache.incr('hits')
+        except redis.exceptions.ConnectionError as exc:
+            if retries == 0:
+                raise exc
+            retries -= 1
+            time.sleep(0.5)
+
+@app.route('/')
+def hello():
+    count = get_hit_count()
+    return 'Hello World! I have been seen {} times.\n'.format(count)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0")
+```
+
+## Docker Compose Configuration
+
+### Example docker-compose.yml
+```yaml
+version: "3"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+  redis:
+    image: "redis:alpine"
+```
+
+### Key Components
+- **version**: Specifies the Docker Compose file format version.
+- **services**: Defines the application services.
+  - **web**:
+    - **build**: Indicates that the Docker image should be built from the current directory (where the Dockerfile is located).
+    - **ports**: Maps port 5000 of the host to port 5000 of the container.
+  - **redis**: Uses the official Redis image (`redis:alpine`).
+
+## Running the Application
+
+### Build and Start the Services
+Run the following command to build and start the containers:
+```bash
+docker-compose up -d
+```
+- This command builds the `web` service and starts both the `web` and `redis` containers in detached mode.
+
+### Accessing the Application
+- Open your web browser and navigate to `http://localhost:5000`.
+- Each refresh of the page will increment the hit count, which is stored in Redis.
+
+## Viewing Built Images
+After building the application, you can view the created images with:
+```bash
+docker image ls
+```
+This will show the newly built images, including the `python_redis_web` image.
+
+## Pushing the Image to Docker Hub
+
+### Modifying docker-compose.yml for Docker Hub
+To push the image to Docker Hub, modify the `docker-compose.yml` file:
+```yaml
+version: '3'
+services:
+  web:
+    build: .
+    image: 'coolgourav147/mypythonimage'  # Update to your Docker Hub username and repository
+    ports:
+      - "5000:5000"
+  redis:
+    image: "redis:alpine"
+```
+
+### Build the Updated Image
+Run the build command again:
+```bash
+docker-compose build
+```
+
+### Verifying the New Image
+Check the list of images again with:
+```bash
+docker image ls
+```
+
+## Conclusion
+This project demonstrates how to use Docker Compose and a Dockerfile to create a simple web application with Redis as a backend. By following these steps, you can build, run, and even push your application to Docker Hub.
+
+--- 
+
+This organized format clarifies each section of the project, making it easy to follow and reference later.

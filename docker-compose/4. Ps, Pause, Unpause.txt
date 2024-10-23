@@ -1,0 +1,76 @@
+# Docker Compose Commands: Ps, Pause, Unpause
+
+## Overview
+These commands are used to manage the state of containers in a Docker Compose application. Below are the descriptions and outputs for each command.
+
+## Commands and Usage
+
+### 1. Ps
+- **Command**: `docker-compose ps`
+- **Description**: Displays the state of the containers defined in the Docker Compose file.
+- **Output**:
+    ```
+              Name                        Command               State          Ports
+    ----------------------------------------------------------------------------------------
+    docker-compose_webapp1_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8000->80/tcp
+    docker-compose_webapp2_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8002->80/tcp
+    ```
+
+### 2. Pause
+- **Command**: `docker-compose pause`
+- **Description**: Pauses all running containers in the application. The state of the containers changes to "Paused."
+- **Output Before Pausing**:
+    ```
+              Name                        Command               State          Ports
+    ----------------------------------------------------------------------------------------
+    docker-compose_webapp1_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8000->80/tcp
+    docker-compose_webapp2_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8002->80/tcp
+    ```
+- **Output After Pausing**:
+    ```
+    Pausing docker-compose_webapp2_1 ... done
+    Pausing docker-compose_webapp1_1 ... done
+    ```
+
+- **Container State Check**:
+    ```bash
+    docker ps
+    ```
+    - **Output**:
+        ```
+        CONTAINER ID   IMAGE     COMMAND                  CREATED              STATUS                       PORTS                  NAMES
+        aa9371ae4c98   nginx     "/docker-entrypoint.…"   About a minute ago   Up About a minute (Paused)   0.0.0.0:8000->80/tcp   docker-compose_webapp1_1
+        225a77fbc32b   nginx     "/docker-entrypoint.…"   About a minute ago   Up About a minute (Paused)   0.0.0.0:8002->80/tcp   docker-compose_webapp2_1
+        ```
+
+### 3. Unpause
+- **Command**: `docker-compose unpause`
+- **Description**: Resumes all paused containers, bringing them back to an "Up" state.
+- **Output Before Unpausing**:
+    ```
+              Name                        Command               State           Ports
+    -----------------------------------------------------------------------------------------
+    docker-compose_webapp1_1   /docker-entrypoint.sh ngin ...   Paused   0.0.0.0:8000->80/tcp
+    docker-compose_webapp2_1   /docker-entrypoint.sh ngin ...   Paused   0.0.0.0:8002->80/tcp
+    ```
+- **Output After Unpausing**:
+    ```
+    Unpausing docker-compose_webapp1_1 ... done
+    Unpausing docker-compose_webapp2_1 ... done
+    ```
+
+- **Final State Check**:
+    ```bash
+    docker-compose ps
+    ```
+    - **Output**:
+        ```
+              Name                        Command               State          Ports
+        ----------------------------------------------------------------------------------------
+        docker-compose_webapp1_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8000->80/tcp
+        docker-compose_webapp2_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8002->80/tcp
+        ```
+
+---
+
+This organized format highlights each command, its purpose, and the expected output, making it easier to reference and understand the functionality of Docker Compose for managing container states.

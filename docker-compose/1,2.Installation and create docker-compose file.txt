@@ -1,0 +1,151 @@
+# **Docker Compose Guide**
+
+## **1. Installation of Docker Compose**
+
+To download and install the current stable release of Docker Compose:
+
+1. **Download Docker Compose:**
+   ```bash
+   sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   ```
+
+2. **Set Executable Permissions:**
+   ```bash
+   sudo chmod +x /usr/local/bin/docker-compose
+   ```
+
+3. **Create a Symbolic Link (optional):**
+   ```bash
+   sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+   ```
+
+4. **Verify Installation:**
+   ```bash
+   docker-compose --version
+   ```
+
+---
+
+## **2. Creating Your First Docker Compose File**
+
+### **2.1. Basic Docker Compose Configuration**
+
+To create multiple containers, use a `docker-compose.yaml` file.
+
+### **Example: Running an Nginx Container**
+- **Manual Command:**
+   ```bash
+   docker container run -itd nginx
+   ```
+
+- **Using Docker Compose:**
+   Create a `docker-compose.yaml` file with the following content:
+   ```yaml
+   version: "3"
+   services:
+     webapp1:
+       image: nginx
+       ports:
+         - "8000:80"
+   ```
+
+- **Run Docker Compose:**
+   ```bash
+   sudo docker-compose up -d
+   ```
+
+### **2.2. Verifying Container Creation**
+- Check running containers:
+   ```bash
+   sudo docker container ls
+   ```
+
+- Check Docker networks:
+   ```bash
+   sudo docker network ls
+   ```
+
+---
+
+## **3. Creating Multiple Containers**
+
+To create multiple containers in a single `docker-compose.yaml` file:
+
+```yaml
+version: "3"
+services:
+  webapp1:
+    image: nginx
+    ports:
+      - "8000:80"
+  webapp2:
+    image: nginx
+    ports:
+      - "8001:80"
+```
+
+- **Run Docker Compose Again:**
+   ```bash
+   sudo docker-compose up -d
+   ```
+
+### **3.1. Verifying Multiple Containers**
+- List containers and check ports:
+   ```bash
+   sudo docker container ls
+   ```
+
+---
+
+## **4. Updating the Docker Compose File**
+
+### **4.1. Re-running Docker Compose**
+If you change the host port of a container in the YAML file, only that container will be recreated:
+- **Example Change:**
+   ```yaml
+   webapp2:
+     image: nginx
+     ports:
+       - "8002:80"
+   ```
+
+- **Run Command:**
+   ```bash
+   sudo docker-compose up -d
+   ```
+
+### **4.2. Changing the Compose File Name**
+To use a different name for the compose file, use the `-f` flag:
+```bash
+docker-compose -f docker-compose.yaml.bkp up -d
+```
+
+---
+
+## **5. Docker Compose File Formats**
+Docker Compose files can be written in YAML or JSON.
+
+### **Example JSON File:**
+```json
+{
+  "version": "3",
+  "services": {
+    "webapp1": {
+      "image": "nginx",
+      "ports": ["8000:80"]
+    },
+    "webapp2": {
+      "image": "nginx",
+      "ports": ["8002:80"]
+    }
+  }
+}
+```
+
+- **Run JSON File:**
+   ```bash
+   docker-compose -f docker-compose.json up -d
+   ```
+
+---
+

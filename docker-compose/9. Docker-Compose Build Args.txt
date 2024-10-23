@@ -1,0 +1,104 @@
+
+# Docker-Compose Build Args
+
+## Overview
+Using build arguments in a Docker Compose file allows for greater flexibility and customization of the build process. This example demonstrates how to pass the Python version as a build argument to the Dockerfile.
+
+## Project Structure
+The project consists of the following files:
+- **app.py**: The main Python application.
+- **requirements.txt**: Lists the required Python packages.
+- **Dockerfile**: Defines how to build the Docker image.
+- **docker-compose.yml**: Defines the services and configuration for the Docker containers.
+
+### Contents of Each File
+
+#### app.py
+```python
+import os
+import time
+import redis
+from flask import Flask
+
+app = Flask(__name__)
+cache = redis.Redis(host='redis', port=6379)
+
+def get_hit_count():
+    retries = 5
+    while True:
+        try:
+            return cache.incr('hits')
+        except redis.exceptions.ConnectionError as exc:
+            if retries == 0:
+                raise exc
+            retries -= 1
+            time.sleep(0.5)
+
+@app.route('/')
+def hello():
+    count = get_hit_count()
+    return 'Hello World! I have been seen {} times.\n'.format(count)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0")
+```
+
+#### requirements.txt
+```
+flask
+redis
+```
+
+#### docker-compose.yml
+```yaml
+version: "3"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PYTHON_VERSION: 3.4
+    image: python-redis-2
+    ports:
+      - "5000:5000"
+  redis:
+    image: "redis:alpine"
+```
+
+### Key Components of docker-compose.yml
+- **version**: Specifies the Docker Compose file format version.
+- **services**: Defines the application services.
+  - **web**:
+    - **build**: Specifies build options.
+      - **context**: Directory where the Dockerfile is located (current directory).
+      - **dockerfile**: Name of the Dockerfile to use.
+      - **args**: Passes build arguments to the Dockerfile.
+    - **image**: Name of the image to be created (e.g., `python-redis-2`).
+    - **ports**: Maps port 5000 of the host to port 5000 of the container.
+  - **redis**: Uses the official Redis image (`redis:alpine`).
+
+#### Dockerfile
+```dockerfile
+ARG PYTHON_VERSION
+FROM python:$PYTHON_VERSION
+ADD . /code
+WORKDIR /code
+RUN pip install -r requirements.txt
+CMD ["python", "app.py"]
+```
+
+### Key Components of Dockerfile
+- **ARG PYTHON_VERSION**: Defines a build argument that will be passed from the Docker Compose file.
+- **FROM python:$PYTHON_VERSION**: Uses the specified Python version to build the image.
+- **ADD**: Copies files from the host into the container, placing them in `/code`.
+- **WORKDIR**: Sets the default working directory for subsequent instructions.
+- **RUN**: Installs the required Python packages from `requirements.txt`.
+- **CMD**: Specifies the command to run when the container starts, which in this case runs the `app.py` script.
+
+## Conclusion
+Using build arguments in the Docker Compose file allows you to customize the build process and make it more generic. In this example, we specified the Python version to be used in the Dockerfile, enabling flexibility in managing dependencies.
+
+--- 
+
+This organized format clarifies the structure and purpose of each component, making it easy to follow and reference later.

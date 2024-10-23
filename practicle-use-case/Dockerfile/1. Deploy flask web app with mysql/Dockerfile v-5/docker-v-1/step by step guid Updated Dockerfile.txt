@@ -1,0 +1,149 @@
+Here’s the updated version of your Docker setup based on the suggestions provided:
+
+### Updated Dockerfile
+
+```dockerfile
+# Specify the Python version as a build argument
+ARG PYTHON_VERSION=3.9-slim
+
+# ============ Stage 1: Build Stage ============
+FROM python:${PYTHON_VERSION} AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc default-libmysqlclient-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install dependencies directly
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ============ Stage 2: Final Stage ============
+FROM python:${PYTHON_VERSION}
+
+# Set the working directory
+WORKDIR /app
+
+# Set pip environment variables to optimize installation
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Copy the installed dependencies from the builder stage
+COPY --from=builder /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
+
+# Copy the application code
+COPY . .
+
+# Create a non-root user for better security
+RUN useradd -m myuser && \
+    chown -R myuser:myuser /app
+
+# Switch to the non-root user
+USER myuser
+
+# Optional: Add a health check to ensure the app is running correctly
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl --fail http://localhost:5000/health || exit 1
+
+# Specify the command to run your app explicitly
+CMD ["python", "app.py"]
+```
+
+### Updated docker-compose.yml
+
+```yaml
+version: '3.9'
+
+services:
+  # ==== MySQL Service ====
+  mysql:
+    container_name: mysql
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: devops
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    volumes:
+      - ./message.sql:/docker-entrypoint-initdb.d/message.sql  # Mount SQL script for automatic table creation
+      - mysql-data:/var/lib/mysql  # Mount the volume for MySQL data storage
+    networks:
+      - twotier
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+
+  # === Flask Application Service ===
+  flask-app:
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: 3.9-slim
+    ports:
+      - "5001:5000"
+    env_file: ".env"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - twotier
+
+volumes:
+  mysql-data:
+    driver: local
+  
+networks:
+  twotier:
+    driver: bridge
+```
+
+### Updated .env
+
+```plaintext
+MYSQL_HOST=mysql
+MYSQL_USER=admin
+MYSQL_PASSWORD=admin
+MYSQL_DB=devops
+```
+
+### Updated requirements.txt
+
+```plaintext
+Flask==2.0.1
+Flask-MySQLdb==0.2.0
+requests==2.26.0
+Werkzeug==2.2.2
+mysqlclient==2.0.3  # Specified version instead of 'latest'
+```
+
+### Key Changes Made:
+
+1. **Dockerfile:**
+   - Removed the virtual environment and installed dependencies directly into the image, simplifying the setup and avoiding potential path issues.
+   - Copied the installed dependencies from the builder stage directly using their typical installation path instead of copying the entire virtual environment.
+
+2. **docker-compose.yml:**
+   - Maintained the health check for MySQL, ensuring that the Flask app starts only after the database is ready.
+   - Comments added to clarify the purpose of each service and configuration.
+
+3. **.env:**
+   - Left unchanged since it was already appropriately structured.
+
+4. **requirements.txt:**
+   - Changed `mysqlclient` to a specific version (`2.0.3`) to ensure consistent dependency resolution.
+
+### Additional Recommendations:
+
+- **Documentation:** Consider adding a README file in your project root to document how to build and run your application, as well as any prerequisites.
+- **Code Quality:** Use a linter for your Python code (e.g., flake8 or pylint) to maintain code quality and best practices.
+- **Testing:** If you haven't already, set up unit tests for your application to ensure reliability and maintainability.
+- **Resource Limits:** Depending on your application's resource requirements, consider adding resource limits in `docker-compose.yml` for the services.
+
+This setup should provide a robust foundation for your application while adhering to best practices. If you have any further questions or need additional modifications, feel free to ask!

@@ -1,0 +1,345 @@
+Docker CLI 
+===========
+Old version : Docker 1.12 
+updated version : docker 1.13 
+
+docker 1.12 
+---------------
+=> It was difficult to remembering the command because docker command was not organize based on docker object.
+[docker object : image ,container ,volume ,network.]
+
+docker 1.13 
+---------------
+=> Easy to remembering the command because docker community update docker CLI command where they organize docker command based on docker object.
+
+
+
+Search image : use to search an image to know the availibility of image.
+--------------------------------------------------------------------------
+=> docker image search image-name
+
+
+
+
+docker container option -flage --name container-name image-name
+=============================================================
+option = run ,start ,create
+-----------------------------
+create :   Create a writeable container form image and prepare it for running 
+-------
+ Ex: docker container create --name continer-name image-name
+ 
+start : start and stop container
+-------
+ Ex: docker container start --name continer-name image-name
+ 
+run = create + start.
+-----
+    Ex: docker container run --name container-name image-name (create and start container in attach mode)
+ 
+flage = -a(attach-mode)(default-mode) ,-d(detach-mode) ,-it(intractive-mode) .
+--------------------------------------------------- 
+attach-mode : container run on our host-machine forground.
+------------- 
+    Ex: docker container run --attached --name continer-name image-name
+                
+dettach-mode : Run container on our host-machine in background dettach forground.
+-------------
+    Ex: docker container run --name -d continer-name image-name
+ 
+interactive-mode and exe mode : Run and go inside container in a interactive-mode either bash or shell.
+------------------ 
+    Ex: docker container run -it -exec --name continer-name image-name /bin/bash
+
+you can run dettach and interractive-mode both at once.
+ Ex: docker container run -itd --name continer-name image-name
+
+docker-container: 
+================== 
+docker container is a virtual ,isolated(it has own filesystem,network interface and process space) ,lightweight and faster(utilize share Host-Os kernel ) environment ,
+that package application and it's dependency into one unit called image use to deploy container with their own fileSystem,network-interface and process space. 
+
+
+inspect 
+=======  
+=> docker [docker-object] inspect [option] id/name
+
+purpose : Use to get information about docker-object. 
+------- 
+
+docker-object : image ,container , network ,volume. 
+--------------- 
+
+output: json formate(default) 
+
+Ex : docker container inspect name/id 
+----- 
+
+
+                              docker container  log 
+                            ========================
+purpose : Use to get log of running container.
+
+we have two option : 
+--------------------- 
+1. Get current log-data of running container. 
+---------------------------
+=> docker container log container-name/id
+
+2. Get live log-data of running container .
+------------------------------ 
+=> docker container log -f container-name/id
+
+
+                        restart and rename container 
+                        ============================
+Restart container : we have two option .
+------------------
+1. restart one container 
+ -> docker container restart id/name
+ 
+2.Restart all available container  
+ -> docker container restart $(docker ps -aq)
+ 
+Rename container 
+------------------- 
+-> docker container rename id/name new-name
+
+
+                    docker-port mapping 
+                    ===================
+let's port mapping for docker-container = 8000 : 80                   
+As we know docker container is isolated that's mean it has their own network-interface so for exposing docker container to external we will have to set firewallrule on docker-container and host-machine to : 
+1.map docker-container network interface to host network interface.
+ ->for that we are exposing docker-container network interface on a port like 80 to host network-interface port 8000.
+2.Expose host network-interface to externel by exposing it on specific port like 8000 
+
+overall workflow 
+------------------- 
+Extenel-user -----request---> host-machine network-interface port 8000 -----redirect to----> docker daemon(Translate ip-add and port )----->docker()--->docker-container network interface port 80.
+
+
+
+
+                     stop ,kill ,wait ,pause and unpause
+                     ==================================
+stop : 
+=======   
+    purpose:
+    -> Only stop the container. 
+    -> When again run the container restart with new process-id you will not lose current state and data.
+    Ex: docker container stop container-name/id
+    • Use Case: When you want to stop a container and ensure it terminates cleanly, without abruptly(अचानक) killing the processes.
+
+kill : 
+=====   
+    purpose:
+    -> immediatelly terminate all the process of container and stop the container.
+    -> When again run the container process-id change and you lose current state and data.
+    EX : docker container kill id/name 
+
+wait: 
+=====   
+    purpose :
+    --------
+        -> It will freez the container and give us exit status after container will stop
+        Ex : docker container wait container-name/id 
+
+    Use Case: Useful when you want to know when a container finishes running, such as when using
+    --------- containers for batch processing or in automated scripts.
+
+    
+    
+    
+    
+pause and unpause 
+=================
+    purpose :
+        ->It stops the execution of the container without terminating the processes.
+        -> pause and unpause all the process inside the container 
+        Ex: docker container pause/unpause id/name 
+ • Use Case: When you need to temporarily halt container execution (e.g., to free up CPU resources)
+without stopping or terminating the container.
+
+
+                     docker container diff 
+                     ====================
+pupose : 
+    -> See update ,create or delete file log of container fileSystem. 
+    docker container diff                  ---> Give list of all data of fileSystem
+    docker container diff | grep 'C'       --->Give list of update or change file in filesytem
+    docker container diff | grep 'D'       --->Give list of delete file in container filesytem
+    docker container diff | grep 'A'       --->Give list of Create new file in container file
+ 
+ 
+ 
+                docker container copy 
+                ====================
+Purpose : 
+    -> copy file from container to local and local host-machine to container .
+    Ex: copy file from local to container.
+            => docker cp /path/on/host container-id:/path/in/container
+        copy file from container to host-machine.
+            => docker container cp container-id:/path/in/container /path/to/host-machine  
+
+                        
+               
+                docker import , export ,commit ,save and load
+                =============================================
+
+export/import
+=============
+purpose :
+----------    
+    -> Create a tar file from running container and share it to target host-machine.
+        Ex: docker container export conainer-name/id >file-name.tar 
+        
+    -> Create a image using this tar file.
+        Ex: docker image import file-name.tar image-name
+        
+commit 
+========
+purpose :
+    -> use to create image from running container.
+        Ex: docker container commit container-id/name image-name 
+
+
+save and load 
+============= 
+purpose:
+    save: save one or more image in a tar Archive along with image state and property. 
+        Ex: docker image save ubuntu:1.12 >ubuntu.tar 
+        
+    load: Use to restore image .
+        Ex: docker image load < image.tar
+       
+        
+Dockerfile component 
+===================== 
+FROM
+--------
+purpose: 
+	-> define base image 
+
+LABEL:
+------
+    purpose : 
+        -> Add information in image related to image component(network,volume,dependency and liabrary) for catagorizing and manage image.
+        
+ENV : 
+------
+    purpose:
+        -> Create persist variable in image which is persist and avaliable when container is running.
+        
+RUN :
+-----  
+    purpose: 
+        -> Run task on new layer of the top of current image layer to run command or install liabrary and dependencies.
+        
+WORKDIR :
+--------- 
+    purpose:
+        -> Use to Set a directory inside container to execute task related to imagelike copy code, install dependencies and liabrary.. 
+        Ex : WORKDIR app
+        
+COPY : 
+------ 
+    purpose : 
+        -> copy data form local to container without decompress if file in local is compress. 
+        Ex : COPY . /app
+ADD
+-----------------
+- **Purpose**: Similar to COPY but with additional capabilities.
+      => If the source is a compressed file (like `.tar.gz`), it will automatically extract it at the destination.
+      => Can also fetch files from URLs, which COPY does not support.
+
+
+**CMD**:
+------------
+=> It is meant for commands that are optional and can be easily replaced.
+- **Purpose**: Specifies the default command to execute if no other command is provided at runtime.
+  - Example: `CMD ["python", "app.py"]`
+- **Key Features**:
+  - Can be overridden by providing a new command in `docker run`.
+  - Acts as arguments for **ENTRYPOINT** if both are used.
+   - CMD work in conjunction with **ENTRYPOINT**, it’s sometimes used to pass additional arguments. For example:
+     ```Dockerfile
+     ENTRYPOINT ["python"]
+     CMD ["app.py"]
+     ```
+     When the container runs, it defaults to `python app.py`. The `CMD` is treated as arguments for `ENTRYPOINT`.
+
+**ENTRYPOINT**:
+===========
+=> It is intended for mandatory commands that should always run, and it acts as the entry point to the container's main task.
+- **Purpose**: Specifies a command that will always run when the container starts, often serving as the main process of the container.
+  - Example: `ENTRYPOINT ["python", "app.py"]`
+
+- **Key Features**:
+--------------------------
+  - Not easily overridden during docker run. To override, you need to use the --entrypoint flag.
+        Example: docker container run -itd --name c-1 ubuntu:latest --entrypoint "custom-command"
+  - Allows **CMD** to act as additional arguments, like:
+    ```Dockerfile
+    ENTRYPOINT ["python"]
+    CMD ["app.py"]
+    ```
+
+
+
+
+                     Image operation(pull,push,tag) 
+                    ============================== 
+create a Dockerfile
+-------------------
+-> docker image build image-name .
+
+tag docker-image
+-------------------
+-> docker image tag image-name dockerHub-user-name/image-name
+
+login to dockerHub 
+------------------
+docker login 
+    -user-name:______
+    -password:_______
+
+push image to dockerHub 
+--------------------------
+-> docker image push dockerHub-user-name/image-name
+
+pull image form dockerHub 
+---------------------------- 
+-> docker image pull dockerHub-user-name/image-name
+
+
+			     docker image ls and history 
+			============================= 
+ls
+===
+-> docker image ls          ---->use to get all image 
+-> docker image ls --format '{{.ID}} , {{.Repository}}'
+
+history
+======
+-> docker image history image-name 
+
+
+
+
+			   removing image and container 
+			============================
+
+image 
+=====
+docker image rm image-name/id              ---->Removing one image
+docker image rmi -f $(docker images -aq)   ---->Removing all available image
+
+container 
+=======
+docker container rm container-name/id      ---->Removing one container 
+docker container rm -f container-name/id      ---->Removing running container 
+docker container rm -vf $(docker ps -qa)   ---->Removing all available container
+
+
+     

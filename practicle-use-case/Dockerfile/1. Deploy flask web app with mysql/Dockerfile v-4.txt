@@ -1,0 +1,49 @@
+# ============ Stage 1: Build Stage ============
+FROM python:3.9-slim AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc default-libmysqlclient-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and create a virtual environment
+COPY requirements.txt .
+RUN python -m venv venv && \
+    . venv/bin/activate && \
+    pip install --no-cache-dir -r requirements.txt
+
+# ============ Stage 2: Final Stage ============
+FROM python:3.9-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Set pip environment variables to optimize installation
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Copy the virtual environment from the builder stage
+COPY --from=builder /app/venv /app/venv
+
+# Copy the application code
+COPY . .
+
+# Set the PATH to use the virtual environment's Python
+ENV PATH="/app/venv/bin:$PATH"
+
+# Create a non-root user for better security
+RUN useradd -m myuser && \
+    chown -R myuser:myuser /app
+
+# Switch to the non-root user
+USER myuser
+
+# Optional: Add a health check to ensure the app is running correctly
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl --fail http://localhost:8000/health || exit 1
+
+# Specify the command to run your app explicitly
+CMD ["python", "app.py"]

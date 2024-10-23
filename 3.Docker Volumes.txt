@@ -1,0 +1,66 @@
+### Docker Volumes: Ensuring Persistent Data in Docker Containers
+
+#### Overview
+- **Docker container data** is ephemeral: any data created in a container is lost if the container is removed.
+- **Solution**: Use Docker Volumes to persist data.
+- **Methods for Persistence**:
+  1. **Volumes**: Managed by Docker, best for most use cases.
+  2. **Bind Mounts**: Map host directory to container (not covered here).
+
+#### Using Docker Volumes
+1. **Identify Persistent Data Locations**:
+   - Example: `mysql` image mounts volume at `/var/lib/mysql`.
+   - Check using:
+     ```bash
+     docker image inspect mysql
+     ```
+2. create a volume.
+   => docker volume create volume-name.
+   => docker volume ls 
+    -> copy volume-id from here
+   
+2. **Running a Container without a Volume**:
+   - Start a container with a volume:
+     ```bash
+     docker container run -d --name mysql1 -v <volume_id>:/var/lib/mysql mysql
+     ```
+
+3. **Inspecting and Accessing Volume Data**:
+   - Find the volume mount point on the Docker host:
+     ```bash
+     docker volume inspect <volume_name>
+     ```
+   - Access the data on the host:
+     ```bash
+     sudo su
+     cd /var/lib/docker/volumes/<volume_id>/_data/
+     ```
+
+4. **Testing Data Persistence**:
+   - Exec the container Create databases in MySQL:
+       => docker container exec -it <new_container_id> mysql
+     ```mysql
+        -> CREATE DATABASE example;
+     ```
+   - Remove the container:
+     ```bash
+     docker container rm -f <container_id>
+     ```
+   - Start a new container with the same volume:
+     ```bash
+     docker container run -d -v <volume_id>:/var/lib/mysql mysql
+     ```
+   - Check if the databases persist by running and you can data still available in container:
+     ```bash
+     docker container exec -it <new_container_id> mysql
+     SHOW DATABASES;
+     ```
+
+#### Key Points
+- **Volumes**: Managed by Docker, persistent, and can be reused across containers.
+- **Creating a Container with Existing Volume**:
+  ```bash
+  docker container run -itd -v <volume_id>:/var/lib/mysql mysql
+  ```
+- **Persistence Verification**: Volumes ensure that databases and other persistent data remain intact across container lifecycles. 
+

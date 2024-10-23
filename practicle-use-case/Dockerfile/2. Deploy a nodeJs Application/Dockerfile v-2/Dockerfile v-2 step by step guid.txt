@@ -1,0 +1,53 @@
+To create a multi-stage Dockerfile based on your provided Dockerfile, you can separate the build environment from the runtime environment. This helps reduce the final image size by only including the necessary files and dependencies in the production image. Here’s an example:
+
+```dockerfile
+# Stage 1: Build
+FROM node:12.2.0-alpine AS build
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json first for better caching
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Run tests
+RUN npm run test
+
+# Stage 2: Production
+FROM node:12.2.0-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Copy only the necessary files from the build stage
+COPY --from=build /app .
+
+# Expose the application port
+EXPOSE 8000
+
+# Command to run the application
+CMD ["node", "app.js"]
+```
+
+### Explanation:
+
+1. **Stage 1 (Build Stage)**:
+   - Uses the Node.js image to build your application.
+   - Sets the working directory to `/app`.
+   - Copies `package.json` and `package-lock.json` first to leverage Docker’s caching mechanism. This way, if your dependencies haven’t changed, Docker can skip reinstalling them.
+   - Installs the npm dependencies.
+   - Copies the application code and runs the tests.
+
+2. **Stage 2 (Production Stage)**:
+   - Starts from the same Node.js image but is a fresh environment for production.
+   - Sets the working directory again.
+   - Copies the built application from the previous stage.
+   - Exposes port 8000 and sets the command to run your application.
+
+Using this multi-stage approach will result in a smaller final image since it won't include unnecessary build files or development dependencies. Let me know if you need any more help!

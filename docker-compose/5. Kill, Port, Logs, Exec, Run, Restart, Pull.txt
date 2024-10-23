@@ -1,0 +1,130 @@
+# Docker Compose Commands: Kill, Port, Logs, Exec, Run, Restart, Pull
+
+## Overview
+This section provides descriptions and usage examples for various Docker Compose commands related to managing containers and accessing their functionalities.
+
+## Commands and Usage
+
+### 1. Kill
+- **Command**: `docker-compose kill`
+- **Description**: Kills the specified containers.
+- **Usage Example**:
+    ```bash
+    docker-compose ps
+    ```
+    - **Output**:
+        ```
+                  Name                        Command               State          Ports
+        ----------------------------------------------------------------------------------------
+        docker-compose_webapp1_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8000->80/tcp
+        docker-compose_webapp2_1   /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8002->80/tcp
+        ```
+
+    ```bash
+    docker-compose kill
+    ```
+    - **Output**:
+        ```
+        Killing docker-compose_webapp1_1 ... done
+        Killing docker-compose_webapp2_1 ... done
+        ```
+
+    ```bash
+    docker-compose ps
+    ```
+    - **Result**: Containers show "Exit 137".
+
+### 2. Port
+- **Command**: `docker-compose port <service> <port>`
+- **Description**: Displays the mapping of a container's port to the host's port.
+- **Usage Example**:
+    ```bash
+    docker-compose port webapp1 80
+    ```
+    - **Output**:
+        ```
+        0.0.0.0:8000
+        ```
+
+### 3. Logs
+- **Command**: `docker-compose logs [-f]`
+- **Description**: Shows the logs from the containers. The `-f` flag can be used for continuous log output.
+- **Usage Example**:
+    ```bash
+    docker-compose logs
+    ```
+    - **Output**: Displays logs from all containers.
+
+    ```bash
+    docker-compose logs -f
+    ```
+    - **Result**: Streams logs continuously.
+
+### 4. Exec
+- **Command**: `docker-compose exec <service> <command>`
+- **Description**: Executes a command in a running container without creating a new one.
+- **Usage Example**:
+    ```bash
+    docker-compose exec webapp1 ls
+    ```
+    - **Output**:
+        ```
+        bin   docker-entrypoint.d   home   media  proc  sbin  tmp
+        boot  docker-entrypoint.sh  lib    mnt    root  srv   usr
+        dev   etc                   lib64  opt    run   sys   var
+        ```
+
+### 5. Run
+- **Command**: `docker-compose run <service> <command>`
+- **Description**: Creates a new container and runs the specified command inside it.
+- **Usage Example**:
+    ```bash
+    docker-compose run webapp1 ls
+    ```
+    - **Output**:
+        ```
+        bin   docker-entrypoint.d   home   media  proc  sbin  tmp
+        boot  docker-entrypoint.sh  lib    mnt    root  srv   usr
+        dev   etc                   lib64  opt    run   sys   var
+        ```
+
+- **Container Check**:
+    ```bash
+    docker container ls -a
+    ```
+    - **Output**: Lists all containers, including the newly created one.
+
+### 6. Restart
+- **Command**: `docker-compose restart`
+- **Description**: Restarts the specified containers.
+- **Usage Example**:
+    ```bash
+    docker-compose restart
+    ```
+    - **Output**:
+        ```
+        Restarting docker-compose_webapp1_1 ... done
+        Restarting docker-compose_webapp2_1 ... done
+        ```
+
+### 7. Pull
+- **Command**: `docker-compose pull`
+- **Description**: Pulls the images defined in the `docker-compose.yaml` file from the repository.
+- **Usage Example**:
+    ```bash
+    docker-compose pull
+    ```
+    - **Output**:
+        ```
+        Pulling webapp1 ... done
+        Pulling webapp2 ... done
+        ```
+
+## Key Differences
+- **`docker-compose exec` vs. `docker-compose run`**: 
+  - `exec` runs commands inside existing running containers.
+  - `run` creates a new container for executing the command.
+
+---
+
+This organized format makes it easy to reference and understand the functionalities of Docker Compose commands for container management and operations.

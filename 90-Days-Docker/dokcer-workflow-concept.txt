@@ -1,0 +1,103 @@
+Here’s a diagram illustrating the interaction between these components:
+
+```plaintext
++--------------------------+         +-------------------------+
+|        User              |         |     Docker CLI          |
+|  (Runs Docker Commands)  |<------->|  (Translates Commands)  |
++--------------------------+         +-------------------------+
+                                           |
+                                           | REST API
+                                           v
++---------------------------------------------------------+
+|                    Docker Daemon (`dockerd`)            |
+|  (Manages high-level container operations)              |
++---------------------------------------------------------+
+                                           |
+                                           | gRPC API
+                                           v
++---------------------------------------------------------+
+|                    containerd                            |
+|  (Manages container lifecycle and low-level operations)  |
++---------------------------------------------------------+
+                                           |
+                                           | OCI API
+                                           v
++-----------------+         +-----------------+
+|      runc       |         |      runc       |
+|  (Sets up the   |<------->|  (Sets up the   |
+|  container's    |         |  container's    |
+|  environment)   |         |  environment)   |
++-----------------+         +-----------------+
+         |                           |
+         |                           |
+         v                           v
++------------------+         +------------------+
+|  Container 1     |         |  Container 2     |
+|  (Runs App)      |         |  (Runs App)      |
++------------------+         +------------------+
+```
+
+
+The container runtime is a crucial component in the Docker ecosystem that is responsible for running containers. Here’s an explanation of how it fits into the Docker architecture:
+
+### What is a Container Runtime?
+
+A container runtime is the low-level component that actually implements the container technology. It is responsible for starting and managing the lifecycle of containers. 
+Dockerd uses container runtimes to create, run, and manage containers.
+
+### Docker Engine and Container Runtime
+
+Docker Engine uses container runtimes to handle the specifics of container execution. Initially, Docker used its own runtime, but now it typically uses an open-standard runtime called `containerd`.
+
+### Key Components and Workflow
+
+1. **Docker CLI (`docker`)**
+2. **Docker Daemon (`dockerd`)**
+3. **containerd**
+4. **runc**
+5. **Containers**
+
+### Detailed Explanation
+
+1. **Docker CLI (`docker`)**:
+   - The user interacts with Docker via the Docker CLI, which translates commands into REST API calls sent to the Docker daemon.
+
+2. **Docker Daemon (`dockerd`)**:
+   - The Docker daemon is responsible for managing Docker objects like images, containers, networks, and volumes.
+   - It handles the high-level orchestration of container lifecycle management.
+
+3. **containerd**:
+   - containerd is an industry-standard core container runtime that manages the complete container lifecycle, from image transfer and storage to container execution and supervision.
+   - Docker daemon communicates with containerd to manage containers.
+   - containerd handles lower-level container tasks, relieving the Docker daemon of these responsibilities.
+
+4. **runc**:
+   - runc is a lightweight, low-level runtime that containerd uses to create and run containers.
+   - It is compliant with the Open Container Initiative (OCI) standard.
+   - runc is responsible for setting up namespaces, control groups (cgroups), and other kernel-level container features.
+
+
+
+Detailed Workflow
+User: Executes a Docker command such as docker run hello-worl&
+Docker CLI:
+• Translates the command into a REST API call.
+• Sends the request to the Docker daemon,
+
+Docker Daemon (dockerd):
+• Receives the API request.
+• Delegates the container creation task to containerd via gRPC API,
+
+containerd:
+• Manages the container lifecycle, such as pulling the image, creating the container, and starting it.
+• Uses runc to set up and run the container.
+
+runc:
+Sets up the container's environment including namespaces and control groups (cgroups),
+Executes the container,
+Containers:
+Containers run the specified applications in isolated environments,
+
+
+Sets up the container's environment, including namespaces and control groups (cgroups)DO
+

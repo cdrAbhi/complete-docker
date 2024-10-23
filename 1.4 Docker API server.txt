@@ -1,0 +1,10 @@
+The **Docker API server** plays a critical role in interacting with the Docker daemon. Here's how it fits into the overall Docker architecture and its key responsibilities:
+
+### Role of Docker API Server:
+1. **Interfacing with Docker Daemon**:
+   - The Docker API server provides a **REST API** interface that clients (like the Docker CLI, third-party applications, or orchestration tools) use to interact with the **Docker daemon**. 
+   - Through this API, users can issue(उपयोगकर्ता जारी कर सकता है) commands to manage containers, images, networks, volumes, and other Docker resources without directly interacting with the Docker daemon.
+   
+2. **Handling User Requests**:
+   - When you run commands using the **Docker CLI** (e.g., `docker run`, `docker ps`), these commands are translated into **API requests**. The Docker API server processes these requests and forwards them to the Docker daemon for execution.
+   

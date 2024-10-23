@@ -1,0 +1,37 @@
+# Use a more updated Ubuntu version as the base image
+FROM ubuntu:20.04
+
+# Set the maintainer label
+LABEL maintainer="learning-ocean"
+LABEL email="[email protected]"
+
+# Define environment variables for username and password
+ENV NAME=gaurav \
+    PASS=password
+
+# Set working directory in the container
+WORKDIR /tmp
+
+# Install necessary packages, clean up APT cache to reduce image size
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        openssh-server \
+        python3 \
+        gcc \
+        openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a new user with a home directory and assign sudo privileges
+RUN useradd -d /home/$NAME -g root -G sudo -m -p $(echo "$PASS" | openssl passwd -1 -stdin) $NAME
+
+# Run `whoami` as root and save output
+RUN whoami > /tmp/1stwhoami.txt
+
+# Switch to the new user
+USER $NAME
+
+# Run `whoami` as the new user and save output
+RUN whoami > /tmp/2ndwhoami.txt
+
+# Switch back to root for future commands, if necessary
+USER root
